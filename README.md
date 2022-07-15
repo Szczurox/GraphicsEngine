@@ -1,2 +1,3 @@
 # GraphicsEngine
- Win32 graphics engine built from scratch
+ Win32 graphics engine built from scratch   
+(in development)
