@@ -20,6 +20,7 @@ template<class T>
 struct vec2 {
 	T x;
 	T y;
+	vec2() : x(0), y(0) {}
 	vec2(T x, T y) : x(x), y(y) {}
 };
 
@@ -34,7 +35,7 @@ private:
 	// Info about the DIB for the StretchDIBits
 	BITMAPINFO bitmapInfo = BITMAPINFO{};
 	// Window styles
-	int winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE;
+	int winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE ;
 
 	// Clears entire screen (not just bitmap) with a chosen color
 	void clearEntireScreen(_In_ u32 color) {
@@ -59,10 +60,10 @@ public:
 	// Current size of the window
 	int width = windowedWidth;
 	int height = windowedHeight;
-
+	// Vertical and horizontal margin in fullscreen mode
 	int marginHorizontal = 0;
 	int marginVertical = 0;
-
+	// Size of the bitmap
 	int bitmapWidth = width;
 	int bitmapHeight = height;
 	// Title of the window
@@ -94,11 +95,11 @@ public:
 		}
 
 		// Create the window
-		hwnd = CreateWindowEx(0, className, title,  // Optional window styles, window class, window title
-			winStyle,                               // Window style
-			CW_USEDEFAULT, CW_USEDEFAULT,           // Window initial position
-			width, height,                          // Window size
-			nullptr, nullptr, curInst, nullptr);    // Parent window, Menu, Instance handle, Additional app data
+		hwnd = CreateWindowEx(0, className, title,   // Optional window styles, window class, window title
+			winStyle,                                // Window style
+			CW_USEDEFAULT, CW_USEDEFAULT,            // Window initial position
+			windowedWidth + 15, windowedHeight + 38, // Window size (there is the bonus size because of the bitmap size and windowed size issues)
+			nullptr, nullptr, curInst, nullptr);     // Parent window, Menu, Instance handle, Additional app data
 
 		if (!hwnd) {
 			MessageBox(0, L"CreateWindowEx failed", 0, 0);
@@ -122,6 +123,11 @@ public:
 		bitmapInfo.bmiHeader.biPlanes = 1;
 		bitmapInfo.bmiHeader.biBitCount = 32;         // Number of bits used to represent each pixel  
 		bitmapInfo.bmiHeader.biCompression = BI_RGB;  // Compression of the bitmap
+		// When entering the fullscreen mode for the first time there appear defects on the margins
+		// We quickly enter and exit the fullscreen mode after creating the window
+		// So that defects don't appear if the user goes to the fullscreen mode himself
+		enterFullscreen();
+		exitFullscreen();
 
 		return 0;
 	}
@@ -170,7 +176,7 @@ public:
 	void drawRectangle(_In_ vec2<int> coords, _In_ int recWidth, _In_ int recHeight, _In_ u32 color) {
 		u32* pixel = (u32*)memory;
 		pixel += coords.y * bitmapWidth + coords.x;
-
+		// For each row of the rectangle draw pixels
 		for (int y = 0; y < recHeight; ++y) {
 			for (int x = 0; x < recWidth; ++x)
 				*pixel++ = color;
@@ -186,9 +192,10 @@ public:
 		int dxAbs = abs(dx);
 		int dyAbs = abs(dy);
 		
-		// If the slope is less than 1
-		if (dyAbs <= dxAbs) {
+		// If the slope is greater than or equal to 1
+		if (dxAbs >= dyAbs) {
 			pk = 2 * dyAbs - dxAbs;
+
 			if (dx >= 0) {
 				x = p1.x; 
 				y = p1.y; 
@@ -214,9 +221,10 @@ public:
 				drawPixel(x, y, color);
 			}
 		}
-		// If the slope is greater than or equal to 1
+		// If the slope is less than 1
 		else {
 			pk = 2 * dxAbs - dyAbs;
+
 			if (dy >= 0) {
 				x = p1.x; 
 				y = p1.y; 
@@ -244,89 +252,180 @@ public:
 		}
 	}
 
+	// Fills a triangle with 2 parallel bottom corners
+	void fillBottomFlatTriangle(vec2<int> v1, vec2<int> v2, vec2<int> v3, u32 color) {
+		// Get inverted slopes
+		float invslope1 = (float)(v2.x - v1.x) / (float)(v2.y - v1.y);
+		float invslope2 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
+		// X of the left and right end of the current line
+		float curx1 = v1.x;
+		float curx2 = v1.x;
+		// Itarate thru the Y coordinates of the triangle down and draw lines calculating Xs of both ends using the inverted slope
+		for (int scanlineY = v1.y; scanlineY <= v2.y; scanlineY++) {
+			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
+			curx1 += invslope1;
+			curx2 += invslope2;
+		}
+	}
 
+	// Fills a triangle with 2 parallel top corners
+	void fillTopFlatTriangle(vec2<int> v1, vec2<int> v2, vec2<int> v3, u32 color) {
+		// Get inverted slopes
+		float invslope1 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
+		float invslope2 = (float)(v3.x - v2.x) / (float)(v3.y - v2.y);
+		// X of the left and right end of the current line
+		float curx1 = v3.x;
+		float curx2 = v3.x;
+		// Itarate thru the Y coordinates of the triangle up and draw lines calculating Xs of both ends using the inverted slope
+		for (int scanlineY = v3.y; scanlineY > v1.y; scanlineY--) {
+			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
+			curx1 -= invslope1;
+			curx2 -= invslope2;
+		}
+	}
+
+	// Draws a triangle
+	void drawTriangle(vec2<int> v1, vec2<int> v2, vec2<int> v3, u32 color) {
+		// Bonus vertice, used as temp for vertices sorting and as a spliting vertice in the general case
+		vec2<int> v4;
+		// Set vertices so that Y of the first one <= Y of the second one <= Y of the third one
+		if (v1.y > v2.y) {
+			v4 = v1;
+			v1 = v2;
+			v2 = v1;
+		}
+		if (v2.y > v3.y) {
+			v4 = v2;
+			v2 = v3;
+			v3 = v2;
+		}
+		if (v1.y > v2.y) {
+			v4 = v1;
+			v1 = v2;
+			v2 = v1;
+		}
+		// Check for trivial case of a bottom-flat triangle
+		if (v2.y == v3.y) {
+			fillBottomFlatTriangle(v1, v2, v3, color);
+		}
+		// Check for trivial case of a top-flat triangle
+		else if (v1.y == v2.y) {
+			fillTopFlatTriangle(v1, v2, v3, color);
+		}
+		else {
+			// Create a bonus vertice spliting with v2 the triangle in a half
+			v4 = vec2<int>((int)(v1.x + (float)(v2.y - v1.y) / (float)(v3.y - v1.y) * (v3.x - v1.x)), v2.y);
+			// Draw the bottom-flat and the top-flat triangle
+			fillBottomFlatTriangle(v1, v2, v4, color);
+			fillTopFlatTriangle(v2, v4, v3, color);
+		}
+	}
+
+	// Exit fullscreen mode
 	void exitFullscreen() {
 		SetWindowLongPtr(hwnd, GWL_STYLE, winStyle); // Set the window styles
 		SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_LEFT); // Set the extended window styles
-
+		
+		// Set the window size to the windowed size
 		width = windowedWidth;
 		height = windowedHeight;
+		// Remove the margins
 		marginHorizontal = 0;
 		marginVertical = 0;
-
-		memory = VirtualAlloc(0,                    // Starting address of the region to allocate
-			width * height * sizeof(unsigned int),  // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,               // Type of memory allocation
-			PAGE_READWRITE);                        // Memory protection for the region
-
+		// Resize and reposition the window
 		SetWindowPos(hwnd, HWND_NOTOPMOST,
-			GetSystemMetrics(SM_CXSCREEN) / 4, GetSystemMetrics(SM_CYSCREEN) / 4, // Window position
-			windowedWidth, windowedHeight,                                        // Window size
+			GetSystemMetrics(SM_CXSCREEN) / 10,      // Window position X
+			GetSystemMetrics(SM_CYSCREEN) / 10,      // Window position Y
+			windowedWidth + 15, windowedHeight + 39, // Window size (there is the bonus size because of the bitmap size and windowed size issues)
 			SWP_SHOWWINDOW);
 	}
 
+	// Enter fullscreen mode
 	void enterFullscreen() {
 		MONITORINFO monitorInfo; // Get the monitor info
 		monitorInfo.cbSize = sizeof(monitorInfo);
 		GetMonitorInfo(MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST), &monitorInfo);
 
-		SetWindowLongPtr(hwnd, GWL_STYLE, winStyle & ~(WS_CAPTION)); // Set the window styles
+		// Set the window styles
+		SetWindowLongPtr(hwnd, GWL_STYLE, winStyle & ~(WS_CAPTION));
 		SetWindowLongPtr(hwnd, GWL_EXSTYLE, 0 & ~(WS_EX_DLGMODALFRAME | WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE | WS_EX_STATICEDGE));
 
+		// Width and height ofthe screen
 		int screenWidth = monitorInfo.rcMonitor.right - monitorInfo.rcMonitor.left;
 		int screenHeight = monitorInfo.rcMonitor.bottom - monitorInfo.rcMonitor.top;
 
+		// Screen ratios
 		double ratioH = (double)windowedHeight / (double)windowedWidth;
 		double ratioW = (double)windowedWidth / (double)windowedHeight;
 
+		int screenHeightRatioed = (double)screenHeight * ratioW;
+		int screenWidthRatioed = (double)screenWidth * ratioH;
 
-		if (screenWidth > screenHeight && (double)screenHeight * ratioW < screenWidth) {
+		bool isScreenWider = screenWidth >= screenHeight;
+
+		// Detect whether to use the vertical or the horizontal margins
+		if ((isScreenWider && screenHeightRatioed < screenWidth) || (!isScreenWider && screenWidthRatioed > screenHeight)) {
+			// Set width based on the screen height
 			width = (double)screenHeight * ratioW;
+			// Set horizonal margins
 			marginHorizontal = (screenWidth - width) / 2;
 		}
-		else if (screenWidth > screenHeight && (double)screenHeight * ratioW > screenWidth) {
+		else {
+			// Set height based on the screen width
 			height = (double)screenWidth * ratioH;
+			// Set vertical margins
 			marginVertical = (screenHeight - height) / 2;
 		}
 
 		width = screenWidth;
 		height = screenHeight;
 
-		memory = VirtualAlloc(0,                                 // Starting address of the region to allocate
+		// Allocate memory for the entire screen to clear it
+		memory = VirtualAlloc(0,                     // Starting address of the region to allocate
 			width * height * sizeof(unsigned int),   // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,                            // Type of memory allocation
-			PAGE_READWRITE);                                     // Memory protection for the region
-
+			MEM_RESERVE | MEM_COMMIT,                // Type of memory allocation
+			PAGE_READWRITE);                         // Memory protection for the region
+		
+		// Clear the entire screen to remove the defects appearing on the margins
 		clearEntireScreen(0x000000);
 
+		// Update entire screen
 		StretchDIBits(hdc,
 			0, 0, width, height,
 			0, 0, bitmapWidth, bitmapHeight,
 			memory, &bitmapInfo,
 			DIB_RGB_COLORS, SRCCOPY);
 
+		// Allocate memory back for the bitmap only
+		memory = VirtualAlloc(0,                                 // Starting address of the region to allocate
+			bitmapWidth * bitmapHeight * sizeof(unsigned int),   // Size of the region (in bytes)
+			MEM_RESERVE | MEM_COMMIT,                            // Type of memory allocation
+			PAGE_READWRITE);                                     // Memory protection for the region
+
 		// Resize, move, and refresh the window
 		SetWindowPos(
 			hwnd,
 			nullptr,
 			monitorInfo.rcMonitor.left, monitorInfo.rcMonitor.top,
-			screenWidth, height,
+			width, height,
 			SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED);
 	}
 
-	// Enter fullscreen mode
+	// Toggle fullscreen mode
 	void toggleFullscreen() {
-		if (!isFullscreen) // If fullscreen is not enabled
-		{
+		// If fullscreen is not enabled
+		if (!isFullscreen) {
+			// Enter fullscreen
 			enterFullscreen();
-
-			isFullscreen = true; // Indicate that fullscreen is on
+			// Indicate that fullscreen is on
+			isFullscreen = true;
 		}
-		else // If fullscreen is enabled
-		{
+		// If fullscreen is enabled
+		else {
+			// Exit fullscreen (go back to windowed)
 			exitFullscreen();
-
-			isFullscreen = false; // Indicate that fullscreen is off
+			// Indicate that fullscreen is off
+			isFullscreen = false;
 		}
 	}
 };

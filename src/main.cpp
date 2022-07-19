@@ -17,7 +17,8 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 		e.handleMessages();
 		e.clearScreen(0x333333);
 		e.drawLine(vec2<int>(100, 100), vec2<int>(200, 200), 0xFF0000);
-		e.drawRectangle(vec2<int>(600, 700), 100, 100, 0x0000FF);
+		e.drawRectangle(vec2<int>(600, 600), 100, 100, 0x0000FF);
+		e.drawTriangle(vec2<int>(200, 300), vec2<int>(300, 400), vec2<int>(150, 500), 0x00FF00);
 		e.stretchDIBits();
 	}
 
