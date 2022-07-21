@@ -253,7 +253,7 @@ public:
 	}
 
 	// Fills a triangle with 2 parallel bottom corners
-	void fillBottomFlatTriangle(vec2<int> v1, vec2<int> v2, vec2<int> v3, u32 color) {
+	void fillBottomFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
 		// Get inverted slopes
 		float invslope1 = (float)(v2.x - v1.x) / (float)(v2.y - v1.y);
 		float invslope2 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
@@ -269,7 +269,7 @@ public:
 	}
 
 	// Fills a triangle with 2 parallel top corners
-	void fillTopFlatTriangle(vec2<int> v1, vec2<int> v2, vec2<int> v3, u32 color) {
+	void fillTopFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
 		// Get inverted slopes
 		float invslope1 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
 		float invslope2 = (float)(v3.x - v2.x) / (float)(v3.y - v2.y);
@@ -285,7 +285,7 @@ public:
 	}
 
 	// Draws a triangle
-	void drawTriangle(vec2<int> v1, vec2<int> v2, vec2<int> v3, u32 color) {
+	void drawTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_ u32 color) {
 		// Bonus vertice, used as temp for vertices sorting and as a spliting vertice in the general case
 		vec2<int> v4;
 		// Set vertices so that Y of the first one <= Y of the second one <= Y of the third one
@@ -319,6 +319,13 @@ public:
 			fillBottomFlatTriangle(v1, v2, v4, color);
 			fillTopFlatTriangle(v2, v4, v3, color);
 		}
+	}
+
+	void drawCircle(_In_ vec2<int> origin, _In_ int radius, _In_  u32 color) {
+		for (int y = -radius; y <= radius; y++)
+			for (int x = -radius; x <= radius; x++)
+				if (x * x + y * y <= radius * radius)
+					drawPixel(origin.x + x, origin.y + y, color);
 	}
 
 	// Exit fullscreen mode
