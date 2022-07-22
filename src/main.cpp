@@ -29,7 +29,6 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 // Processes the messages
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {
-	// Key pressed event
 	case WM_KEYDOWN:
 		switch (wParam) {
 		case VK_ESCAPE:
@@ -38,13 +37,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			e.toggleFullscreen();
 		}
 		break;
-	// Destroy window event
-	case WM_DESTROY:
-		PostQuitMessage(0);
-		running = false;
-		return 0;
-	default:
-		return DefWindowProc(hwnd, msg, wParam, lParam);
 	}
-	return 0;
+	return e.processMessage(hwnd, msg, wParam, lParam, running);
 }

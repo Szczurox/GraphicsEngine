@@ -68,6 +68,9 @@ public:
 	int bitmapHeight = height;
 	// Title of the window
 	const wchar_t* title = L"GraphicsEngine";
+	// Mouse positon
+	int mouseX = 0;
+	int mouseY = 0;
 
 	// Creates a window
 	int createWindow(_In_ HINSTANCE currentInstance, _In_opt_ int windowWidth = 800, _In_opt_ int windowHeight = 600, 
@@ -110,10 +113,12 @@ public:
 		hdc = GetDC(hwnd);
 
 		// Allocate memory for the bitmap 
-		memory = VirtualAlloc(0,                    // Starting address of the region to allocate
-			width * height * sizeof(unsigned int),  // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,               // Type of memory allocation
-			PAGE_READWRITE);                        // Memory protection for the region
+		memory = VirtualAlloc(0,        // Starting address of the region to allocate
+			static_cast<u32>(width) 
+			* static_cast<u32>(height) 
+			* sizeof(unsigned int),     // Size of the region (in bytes)
+			MEM_RESERVE | MEM_COMMIT,   // Type of memory allocation
+			PAGE_READWRITE);            // Memory protection for the region
 		
 		// Set info about the bitmap for the StretchDIBits
 		bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader); 
@@ -139,6 +144,23 @@ public:
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+	}
+
+	// Message processing
+	LRESULT processMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, bool& isRunning) {
+		switch (msg) {
+		case WM_DESTROY:
+			PostQuitMessage(0);
+			isRunning = false;
+			return 0;
+		case WM_MOUSEMOVE:
+			mouseX = LOWORD(lParam);
+			mouseY = HIWORD(lParam);
+			break;
+		default:
+			return DefWindowProc(hwnd, msg, wParam, lParam);
+		}
+		return 0;
 	}
 
 	// Calls StretchDIBits function
@@ -167,7 +189,7 @@ public:
 	void drawPixel(_In_ int x, _In_ int y, _In_ u32 color) {
 		if (memory) {
 			u32* pixel = (u32*)memory;
-			pixel += y * bitmapWidth + x;
+			pixel += static_cast<u32>(y) * bitmapWidth + static_cast<u32>(x);
 			*pixel = color;
 		}
 	}
@@ -258,8 +280,8 @@ public:
 		float invslope1 = (float)(v2.x - v1.x) / (float)(v2.y - v1.y);
 		float invslope2 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
 		// X of the left and right end of the current line
-		float curx1 = v1.x;
-		float curx2 = v1.x;
+		float curx1 = (float)v1.x;
+		float curx2 = (float)v1.x;
 		// Itarate thru the Y coordinates of the triangle down and draw lines calculating Xs of both ends using the inverted slope
 		for (int scanlineY = v1.y; scanlineY <= v2.y; scanlineY++) {
 			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
@@ -274,8 +296,8 @@ public:
 		float invslope1 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
 		float invslope2 = (float)(v3.x - v2.x) / (float)(v3.y - v2.y);
 		// X of the left and right end of the current line
-		float curx1 = v3.x;
-		float curx2 = v3.x;
+		float curx1 = (float)v3.x;
+		float curx2 = (float)v3.x;
 		// Itarate thru the Y coordinates of the triangle up and draw lines calculating Xs of both ends using the inverted slope
 		for (int scanlineY = v3.y; scanlineY > v1.y; scanlineY--) {
 			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
@@ -365,21 +387,21 @@ public:
 		double ratioH = (double)windowedHeight / (double)windowedWidth;
 		double ratioW = (double)windowedWidth / (double)windowedHeight;
 
-		int screenHeightRatioed = (double)screenHeight * ratioW;
-		int screenWidthRatioed = (double)screenWidth * ratioH;
+		int screenHeightRatioed = (int)((double)screenHeight * ratioW);
+		int screenWidthRatioed = (int)((double)screenWidth * ratioH);
 
 		bool isScreenWider = screenWidth >= screenHeight;
 
 		// Detect whether to use the vertical or the horizontal margins
 		if ((isScreenWider && screenHeightRatioed < screenWidth) || (!isScreenWider && screenWidthRatioed > screenHeight)) {
 			// Set width based on the screen height
-			width = (double)screenHeight * ratioW;
+			width = (int)((double)screenHeight * ratioW);
 			// Set horizonal margins
 			marginHorizontal = (screenWidth - width) / 2;
 		}
 		else {
 			// Set height based on the screen width
-			height = (double)screenWidth * ratioH;
+			height = (int)((double)screenWidth * ratioH);
 			// Set vertical margins
 			marginVertical = (screenHeight - height) / 2;
 		}
@@ -388,10 +410,12 @@ public:
 		height = screenHeight;
 
 		// Allocate memory for the entire screen to clear it
-		memory = VirtualAlloc(0,                     // Starting address of the region to allocate
-			width * height * sizeof(unsigned int),   // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,                // Type of memory allocation
-			PAGE_READWRITE);                         // Memory protection for the region
+		memory = VirtualAlloc(0,        // Starting address of the region to allocate
+			static_cast<u32>(width) * 
+			static_cast<u32>(height) * 
+			sizeof(unsigned int),       // Size of the region (in bytes)
+			MEM_RESERVE | MEM_COMMIT,   // Type of memory allocation
+			PAGE_READWRITE);            // Memory protection for the region
 		
 		// Clear the entire screen to remove the defects appearing on the margins
 		clearEntireScreen(0x000000);
@@ -404,10 +428,12 @@ public:
 			DIB_RGB_COLORS, SRCCOPY);
 
 		// Allocate memory back for the bitmap only
-		memory = VirtualAlloc(0,                                 // Starting address of the region to allocate
-			bitmapWidth * bitmapHeight * sizeof(unsigned int),   // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,                            // Type of memory allocation
-			PAGE_READWRITE);                                     // Memory protection for the region
+		memory = VirtualAlloc(0,             // Starting address of the region to allocate
+			static_cast<u32>(bitmapWidth) 
+			* static_cast<u32>(bitmapHeight) 
+			* sizeof(unsigned int),           // Size of the region (in bytes)
+			MEM_RESERVE | MEM_COMMIT,         // Type of memory allocation
+			PAGE_READWRITE);                  // Memory protection for the region
 
 		// Resize, move, and refresh the window
 		SetWindowPos(
