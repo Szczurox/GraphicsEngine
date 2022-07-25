@@ -12,6 +12,10 @@ enum COLOR {
 	RED = 0xFF0000,
 	GREEN = 0x00FF00,
 	BLUE = 0x0000FF,
+	YELLOW = 0xFFFF00,
+	PINK = 0xFFC0CB,
+	PURPLE = 0x800080,
+	ORANGE = 0xFFA500,
 	WHITE = 0xFFFFFF,
 	BLACK = 0x000000,
 };
@@ -23,6 +27,22 @@ struct vec2 {
 	vec2() : x(0), y(0) {}
 	vec2(T x, T y) : x(x), y(y) {}
 };
+
+struct Rect {
+	//const wchar_t* id = nullptr;
+	vec2<int> minPoint;
+	vec2<int> maxPoint;
+
+	Rect() : minPoint(vec2<int>()), maxPoint(vec2<int>()) {}
+	Rect(vec2<int> x, vec2<int> y) : minPoint(x), maxPoint(y) {}
+	Rect(vec2<int> coords, int width, int height) 
+		: maxPoint(vec2<int>(coords.x + width, coords.y)), minPoint(vec2<int>(coords.x, coords.y + height)) {}
+
+	bool isPointInside(vec2<int> point) {
+		return point.x > maxPoint.x && point.x < minPoint.x && point.y > minPoint.y && point.y < maxPoint.y;
+	}
+};
+
 
 class GraphicsEngine {
 private:
@@ -36,6 +56,13 @@ private:
 	BITMAPINFO bitmapInfo = BITMAPINFO{};
 	// Window styles
 	int winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE ;
+	// Bonus mouse variables
+	bool fsLbClick = false;
+	bool fsRbClick = false;
+
+	//// List of all buttons
+	//Rect* rectButtons = nullptr;
+	//int rectButtonsCount = 0;
 
 	// Clears entire screen (not just bitmap) with a chosen color
 	void clearEntireScreen(_In_ u32 color) {
@@ -44,6 +71,38 @@ private:
 			for (int index = 0; index < width * height; ++index) {
 				*pixel++ = color;
 			}
+		}
+	}
+
+	// Fills a triangle with 2 parallel bottom corners
+	void fillBottomFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
+		// Get inverted slopes
+		float invslope1 = (float)(v2.x - v1.x) / (float)(v2.y - v1.y);
+		float invslope2 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
+		// X of the left and right end of the current line
+		float curx1 = (float)v1.x;
+		float curx2 = (float)v1.x;
+		// Itarate thru the Y coordinates of the triangle down and draw lines calculating Xs of both ends using the inverted slope
+		for (int scanlineY = v1.y; scanlineY <= v2.y; scanlineY++) {
+			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
+			curx1 += invslope1;
+			curx2 += invslope2;
+		}
+	}
+
+	// Fills a triangle with 2 parallel top corners
+	void fillTopFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
+		// Get inverted slopes
+		float invslope1 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
+		float invslope2 = (float)(v3.x - v2.x) / (float)(v3.y - v2.y);
+		// X of the left and right end of the current line
+		float curx1 = (float)v3.x;
+		float curx2 = (float)v3.x;
+		// Itarate thru the Y coordinates of the triangle up and draw lines calculating Xs of both ends using the inverted slope
+		for (int scanlineY = v3.y; scanlineY > v1.y; scanlineY--) {
+			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
+			curx1 -= invslope1;
+			curx2 -= invslope2;
 		}
 	}
 
@@ -71,6 +130,11 @@ public:
 	// Mouse positon
 	int mouseX = 0;
 	int mouseY = 0;
+	// Mouse buttons
+	bool lbPress = false;  // Left button held
+	bool rbPress = false;  // Right button held
+	bool lbClick = false;  // Left button clicked
+	bool rbClick = false;  // Right button clicked
 
 	// Creates a window
 	int createWindow(_In_ HINSTANCE currentInstance, _In_opt_ int windowWidth = 800, _In_opt_ int windowHeight = 600, 
@@ -157,14 +221,36 @@ public:
 			mouseX = LOWORD(lParam);
 			mouseY = HIWORD(lParam);
 			break;
+		case WM_LBUTTONDOWN:
+			lbPress = true;
+			fsLbClick = true;
+			break;
+		case WM_LBUTTONUP:
+			lbPress = false;
+			if (fsLbClick) {
+				lbClick = !lbClick;
+				fsLbClick = false;
+			}
+			break;
+		case WM_RBUTTONDOWN:
+			rbPress = true;
+			fsRbClick = true;
+			break;
+		case WM_RBUTTONUP:
+			rbPress = false;
+			if (fsRbClick) {
+				rbClick = !rbClick;
+				fsRbClick = false;
+			}	
+			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
 		}
 		return 0;
 	}
 
-	// Calls StretchDIBits function
-	void stretchDIBits() {
+	// Code that has to be run at the end of the main loop
+	void mainLoopEndEvents() {
 		// Strech the rows and columns of the color data of the source rectangle
 		// to fit the destination rectangle
 		StretchDIBits(hdc,                                              // The handle to the device context
@@ -173,6 +259,10 @@ public:
 			0, 0, bitmapWidth, bitmapHeight,                            // The source rectangle (top left corner coordinates and size)  
 			memory, &bitmapInfo,                                        // A pointer to the image bitmap and bitmap info
 			DIB_RGB_COLORS, SRCCOPY);                                   // Specifies whether bmiColors contains RGB values or indexes, a raster-operation code 
+
+		// End button click event
+		rbClick = false;
+		lbClick = false;
 	}
 
 	// Clears screen with a chosen color
@@ -271,38 +361,6 @@ public:
 				}
 				drawPixel(x, y, color);
 			}
-		}
-	}
-
-	// Fills a triangle with 2 parallel bottom corners
-	void fillBottomFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
-		// Get inverted slopes
-		float invslope1 = (float)(v2.x - v1.x) / (float)(v2.y - v1.y);
-		float invslope2 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
-		// X of the left and right end of the current line
-		float curx1 = (float)v1.x;
-		float curx2 = (float)v1.x;
-		// Itarate thru the Y coordinates of the triangle down and draw lines calculating Xs of both ends using the inverted slope
-		for (int scanlineY = v1.y; scanlineY <= v2.y; scanlineY++) {
-			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
-			curx1 += invslope1;
-			curx2 += invslope2;
-		}
-	}
-
-	// Fills a triangle with 2 parallel top corners
-	void fillTopFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
-		// Get inverted slopes
-		float invslope1 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
-		float invslope2 = (float)(v3.x - v2.x) / (float)(v3.y - v2.y);
-		// X of the left and right end of the current line
-		float curx1 = (float)v3.x;
-		float curx2 = (float)v3.x;
-		// Itarate thru the Y coordinates of the triangle up and draw lines calculating Xs of both ends using the inverted slope
-		for (int scanlineY = v3.y; scanlineY > v1.y; scanlineY--) {
-			drawLine(vec2<int>((int)curx1, scanlineY), vec2<int>((int)curx2, scanlineY), color);
-			curx1 -= invslope1;
-			curx2 -= invslope2;
 		}
 	}
 
@@ -462,6 +520,5 @@ public:
 		}
 	}
 };
-
 
 #endif // !GRAPHICS_ENGINE
