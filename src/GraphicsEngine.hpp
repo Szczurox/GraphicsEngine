@@ -63,10 +63,6 @@ private:
 	bool fsLbClick = false;
 	bool fsRbClick = false;
 
-	//// List of all buttons
-	//Rect* rectButtons = nullptr;
-	//int rectButtonsCount = 0;
-
 	// Clears entire screen (not just bitmap) with a chosen color
 	void clearEntireScreen(_In_ u32 color) {
 		if (memory) {
@@ -307,7 +303,7 @@ public:
 			int rSq = radius * radius;
 			// Traverse the y coordinates of the circle (from top (-) to bottom (+))
 			for (int y = -radius; y <= radius; y++)
-				// For each row length of the 2r
+				// For each row length of the 2 radii
 				for (int x = -radius; x <= radius; x++)
 					// If the pixel is within the circle
 					if (CEQ(x, y, rSq))
