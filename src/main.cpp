@@ -13,7 +13,7 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 	int pinkCircle = false;
 	int yellowCircle = false;
 
-	e.createWindow(curInst, 800, 800);
+	e.createWindow(curInst, 900, 900);
 
 	Rect button(vec2<int>(700, 600), vec2<int>(600, 700));
 
@@ -21,7 +21,12 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 	while (running) {
 		e.handleMessages();
 		e.clearScreen(0x333333);
-		e.drawLine(vec2<int>(100, 100), vec2<int>(200, 200), RED);
+		// Board
+		e.drawLine(vec2<int>(300, 0), vec2<int>(300, 900), BLACK, 10);
+		e.drawLine(vec2<int>(600, 0), vec2<int>(600, 900), BLACK, 10);
+		e.drawLine(vec2<int>(0, 300), vec2<int>(900, 300), BLACK, 10);
+		e.drawLine(vec2<int>(0, 600), vec2<int>(900, 600), BLACK, 10);
+
 		e.drawRectangle(vec2<int>(600, 600), 100, 100, BLUE);
 		e.drawTriangle(vec2<int>(200, 300), vec2<int>(300, 400), vec2<int>(150, 500), GREEN);
 		if (button.isPointInside(vec2<int>(e.mouseX, e.mouseY)) && e.lbClick) {
@@ -33,9 +38,9 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 			pinkCircle = !pinkCircle;
 		}
 		if (pinkCircle)
-			e.drawCircle(vec2<int>(500, 300), 60, PINK);
+			e.drawEmptyCircle(vec2<int>(500, 300), 60, PINK, 2);
 		else if (yellowCircle)
-			e.drawCircle(vec2<int>(500, 300), 60, YELLOW);
+			e.drawEmptyCircle(vec2<int>(500, 300), 60, YELLOW, 2);
 		e.mainLoopEndEvents();
 	}
 

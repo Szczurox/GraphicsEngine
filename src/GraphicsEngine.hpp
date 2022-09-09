@@ -3,6 +3,9 @@
 
 #include <windows.h>
 
+// Circle equation check
+#define CEQ(x, y, rSq) ((x) * (x) + (y) * (y) <= rSq)
+
 typedef uint32_t u32;
 
 // Processes the messages
@@ -256,7 +259,7 @@ public:
 		StretchDIBits(hdc,                                              // The handle to the device context
 			marginHorizontal, marginVertical,                           // The destination rectangle top left corner
 			width - marginHorizontal * 2, height - marginVertical * 2,  // The destination rectangle size
-			0, 0, bitmapWidth, bitmapHeight,                            // The source rectangle (top left corner coordinates and size)  
+			0, 0, bitmapWidth, bitmapHeight,                             // The source rectangle (top left corner coordinates and size)  
 			memory, &bitmapInfo,                                        // A pointer to the image bitmap and bitmap info
 			DIB_RGB_COLORS, SRCCOPY);                                   // Specifies whether bmiColors contains RGB values or indexes, a raster-operation code 
 
@@ -277,7 +280,7 @@ public:
 
 	// Draws a pixel with custom color at specified coordinates
 	void drawPixel(_In_ int x, _In_ int y, _In_ u32 color) {
-		if (memory) {
+		if (memory && x < bitmapWidth && y < bitmapHeight && x > 0 && y > 0) {
 			u32* pixel = (u32*)memory;
 			pixel += static_cast<u32>(y) * bitmapWidth + static_cast<u32>(x);
 			*pixel = color;
@@ -296,8 +299,54 @@ public:
 		}
 	}
 
+	// Draws a filled circle
+	void drawCircle(_In_ vec2<int> origin, _In_ int radius, _In_  u32 color) {
+		// Check for the trivial case of a 1 pixel radius circle
+		if (radius > 1) {
+			// Radius squared
+			int rSq = radius * radius;
+			// Traverse the y coordinates of the circle (from top (-) to bottom (+))
+			for (int y = -radius; y <= radius; y++)
+				// For each row length of the 2r
+				for (int x = -radius; x <= radius; x++)
+					// If the pixel is within the circle
+					if (CEQ(x, y, rSq))
+						drawPixel(origin.x + x, origin.y + y, color);
+		}
+		else
+			drawPixel(origin.x, origin.y, color);
+	}
+
+	// Draws and empty circle
+	void drawEmptyCircle(_In_ vec2<int> origin, _In_ int radius, _In_  u32 color, _In_opt_ unsigned short thickness = 1) {
+		// Radius squared
+		int rSq = radius * radius;
+		// Traverse the y coordinates of the circle (from top (-) to bottom (+))
+		for (int y = -radius; y <= radius; y++) {
+			// Traverse the circle's x coordinates (from left (-) to right (+))
+			for (int x = -radius; x <= radius; x++) 
+				// If the pixel is within the circle
+				if (CEQ(x, y, rSq)) {
+					// Draw pixels of the circle until there is other pixel above or below
+					drawCircle(vec2<int>(origin.x + x, origin.y + y), thickness, color);
+					if (CEQ(x, y + 1, rSq) && CEQ(x, y - 1, rSq))
+						break;
+				}
+			// Traverse the circle's x coordinates (from right (+) to left (-))
+			for (int x = radius; x >= -radius; x--)
+				// If the pixel is within the circle
+				if (CEQ(x, y, rSq)) {
+					// Draw pixels of the circle until there is other pixel above or below
+					drawCircle(vec2<int>(origin.x + x, origin.y + y), thickness, color);
+					if (CEQ(x, y + 1, rSq) && CEQ(x, y - 1, rSq))
+						break;
+				}
+
+		}
+	}
+
 	// Draws a line
-	void drawLine(_In_ vec2<int> p1, _In_ vec2<int> p2, _In_ u32 color) {
+	void drawLine(_In_ vec2<int> p1, _In_ vec2<int> p2, _In_ u32 color, _In_opt_ unsigned short thickness = 1) {
 		int x, y, e, pk;
 		int dx = p2.x - p1.x;
 		int dy = p2.y - p1.y;
@@ -319,7 +368,7 @@ public:
 				e = p1.x;
 			}
 
-			drawPixel(x, y, color);
+			drawCircle(vec2<int>(x, y), thickness, color);
 
 			for (int i = 0; x < e; i++) {
 				x++;
@@ -330,7 +379,7 @@ public:
 					else y--;
 					pk += + 2 * (dyAbs - dxAbs);
 				}
-				drawPixel(x, y, color);
+				drawCircle(vec2<int>(x, y), thickness, color);
 			}
 		}
 		// If the slope is less than 1
@@ -348,7 +397,7 @@ public:
 				e = p1.y;
 			}
 
-			drawPixel(x, y, color);
+			drawCircle(vec2<int>(x, y), thickness, color);
 
 			for (int i = 0; y < e; i++) {
 				y++;
@@ -359,7 +408,7 @@ public:
 					else x--;
 					pk += + 2 * (dxAbs - dyAbs);
 				}
-				drawPixel(x, y, color);
+				drawCircle(vec2<int>(x, y), thickness, color);
 			}
 		}
 	}
@@ -399,13 +448,6 @@ public:
 			fillBottomFlatTriangle(v1, v2, v4, color);
 			fillTopFlatTriangle(v2, v4, v3, color);
 		}
-	}
-
-	void drawCircle(_In_ vec2<int> origin, _In_ int radius, _In_  u32 color) {
-		for (int y = -radius; y <= radius; y++)
-			for (int x = -radius; x <= radius; x++)
-				if (x * x + y * y <= radius * radius)
-					drawPixel(origin.x + x, origin.y + y, color);
 	}
 
 	// Exit fullscreen mode
