@@ -255,7 +255,7 @@ public:
 		StretchDIBits(hdc,                                              // The handle to the device context
 			marginHorizontal, marginVertical,                           // The destination rectangle top left corner
 			width - marginHorizontal * 2, height - marginVertical * 2,  // The destination rectangle size
-			0, 0, bitmapWidth, bitmapHeight,                             // The source rectangle (top left corner coordinates and size)  
+			0, 0, bitmapWidth, bitmapHeight,                            // The source rectangle (top left corner coordinates and size)  
 			memory, &bitmapInfo,                                        // A pointer to the image bitmap and bitmap info
 			DIB_RGB_COLORS, SRCCOPY);                                   // Specifies whether bmiColors contains RGB values or indexes, a raster-operation code 
 
