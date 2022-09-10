@@ -2,6 +2,11 @@
 #include <stdint.h>
 #include "../GraphicsEngine.hpp"
 
+// Global variables
+bool running = true;
+bool restart = false;
+GraphicsEngine e;
+
 // Move value structure
 struct MoveValue {
 	int score;
@@ -25,11 +30,6 @@ struct Move {
 	MoveValue moveVal;
 	Move() : row(-1), col(-1), moveVal(-1000) {}
 };
-
-bool running = true;
-bool devMode = false;
-
-GraphicsEngine e;
 
 // Checks if there are any free spaces left on the board
 bool isMovesLeft(int board[3][3]) {
@@ -245,7 +245,7 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 
 	// Generate hitbox for each square
 	for (int i = 0; i < 3; i++)
-		for (int j = 0; j < 3; j++) 
+		for (int j = 0; j < 3; j++)
 			squares[i][j] = Rect(vec2<int>(290 + j * 300, 10 + i * 300), vec2<int>(10 + j * 300, 290 + i * 300));
 
 	// Main program loop
@@ -280,6 +280,17 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 			}
 		}
 
+		if (restart) {
+			int board[3][3] = {
+				{ 0, 0, 0 },
+				{ 0, 0, 0 },
+				{ 0, 0, 0 }
+			};
+			bool playerTurn = true;
+			bool gameOver = false;
+			MoveValue boardValue = 0;
+		}
+
 		e.mainLoopEndEvents();
 	}
 
@@ -293,10 +304,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		switch (wParam) {
 		case VK_ESCAPE:
 			DestroyWindow(hwnd);
-		case VK_F11:
-			e.toggleFullscreen();
-		case 0x44:
-			devMode = true;
+		//case VK_F11:
+		//	e.toggleFullscreen();
+		case 0x52:
+			restart = true;
 		}
 		break;
 	}

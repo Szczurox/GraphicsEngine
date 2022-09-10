@@ -141,8 +141,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\demo\tictactoe\tictactoe.cpp" />
-    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\demo\tictactoe.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\GraphicsEngine.hpp" />

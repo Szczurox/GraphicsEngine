@@ -62,6 +62,9 @@ private:
 	// Bonus mouse variables
 	bool fsLbClick = false;
 	bool fsRbClick = false;
+	// Mouse area ratios
+	int mouseYRatio = 1;
+	int mouseXRatio = 1;
 
 	// Clears entire screen (not just bitmap) with a chosen color
 	void clearEntireScreen(_In_ u32 color) {
@@ -214,7 +217,7 @@ public:
 		switch (msg) {
 		case WM_DESTROY:
 			PostQuitMessage(0);
-			isRunning = false;
+			isRunning = false; 
 			return 0;
 		case WM_MOUSEMOVE:
 			mouseX = LOWORD(lParam);
@@ -457,6 +460,9 @@ public:
 		// Remove the margins
 		marginHorizontal = 0;
 		marginVertical = 0;
+		// Set mouse ratios to fix mouse coordinates
+		mouseXRatio = 1;
+		mouseYRatio = 1;
 		// Resize and reposition the window
 		SetWindowPos(hwnd, HWND_NOTOPMOST,
 			GetSystemMetrics(SM_CXSCREEN) / 10,      // Window position X
