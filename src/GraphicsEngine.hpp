@@ -62,9 +62,9 @@ private:
 	// Bonus mouse variables
 	bool fsLbClick = false;
 	bool fsRbClick = false;
-	// Mouse area ratios
-	int mouseYRatio = 1;
-	int mouseXRatio = 1;
+	// Windowed / fullscreen ratios to transform coordinates in the fullscreen mode
+	float transformW = 1.0f;
+	float transformH = 1.0f;
 
 	// Clears entire screen (not just bitmap) with a chosen color
 	void clearEntireScreen(_In_ u32 color) {
@@ -220,8 +220,8 @@ public:
 			isRunning = false; 
 			return 0;
 		case WM_MOUSEMOVE:
-			mouseX = LOWORD(lParam);
-			mouseY = HIWORD(lParam);
+			mouseX = (int)((float)(LOWORD(lParam) - marginHorizontal) * transformW);
+			mouseY = (int)((float)(HIWORD(lParam) - marginVertical) * transformH);
 			break;
 		case WM_LBUTTONDOWN:
 			lbPress = true;
@@ -461,8 +461,8 @@ public:
 		marginHorizontal = 0;
 		marginVertical = 0;
 		// Set mouse ratios to fix mouse coordinates
-		mouseXRatio = 1;
-		mouseYRatio = 1;
+		transformW = 1.0f;
+		transformH = 1.0f;
 		// Resize and reposition the window
 		SetWindowPos(hwnd, HWND_NOTOPMOST,
 			GetSystemMetrics(SM_CXSCREEN) / 10,      // Window position X
@@ -498,12 +498,18 @@ public:
 		if ((isScreenWider && screenHeightRatioed < screenWidth) || (!isScreenWider && screenWidthRatioed > screenHeight)) {
 			// Set width based on the screen height
 			width = (int)((double)screenHeight * ratioW);
+			// Set coordinate transform
+			transformW = (float)windowedWidth / (float)screenHeight;
+			transformH = (float)windowedWidth / (float)screenHeight;
 			// Set horizonal margins
 			marginHorizontal = (screenWidth - width) / 2;
 		}
 		else {
 			// Set height based on the screen width
 			height = (int)((double)screenWidth * ratioH);
+			// Set coordinate transform
+			transformW = (float)windowedHeight / (float)screenWidth;
+			transformH = (float)windowedHeight / (float)screenWidth;
 			// Set vertical margins
 			marginVertical = (screenHeight - height) / 2;
 		}

@@ -304,8 +304,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		switch (wParam) {
 		case VK_ESCAPE:
 			DestroyWindow(hwnd);
-		//case VK_F11:
-		//	e.toggleFullscreen();
+		case VK_F11:
+			e.toggleFullscreen();
 		case 0x52:
 			restart = true;
 		}
