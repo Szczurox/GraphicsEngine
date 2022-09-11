@@ -6,8 +6,6 @@
 // Circle equation check
 #define CEQ(x, y, rSq) ((x) * (x) + (y) * (y) <= rSq)
 
-typedef uint32_t u32;
-
 // Processes the messages
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
@@ -67,9 +65,9 @@ private:
 	float transformH = 1.0f;
 
 	// Clears entire screen (not just bitmap) with a chosen color
-	void clearEntireScreen(_In_ u32 color) {
+	void clearEntireScreen(_In_ UINT32 color) {
 		if (memory) {
-			u32* pixel = (u32*)memory;
+			UINT32* pixel = (UINT32*)memory;
 			for (int index = 0; index < width * height; ++index) {
 				*pixel++ = color;
 			}
@@ -77,7 +75,7 @@ private:
 	}
 
 	// Fills a triangle with 2 parallel bottom corners
-	void fillBottomFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
+	void fillBottomFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  UINT32 color) {
 		// Get inverted slopes
 		float invslope1 = (float)(v2.x - v1.x) / (float)(v2.y - v1.y);
 		float invslope2 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
@@ -93,7 +91,7 @@ private:
 	}
 
 	// Fills a triangle with 2 parallel top corners
-	void fillTopFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  u32 color) {
+	void fillTopFlatTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_  UINT32 color) {
 		// Get inverted slopes
 		float invslope1 = (float)(v3.x - v1.x) / (float)(v3.y - v1.y);
 		float invslope2 = (float)(v3.x - v2.x) / (float)(v3.y - v2.y);
@@ -179,12 +177,10 @@ public:
 		hdc = GetDC(hwnd);
 
 		// Allocate memory for the bitmap 
-		memory = VirtualAlloc(0,        // Starting address of the region to allocate
-			static_cast<u32>(width) 
-			* static_cast<u32>(height) 
-			* sizeof(unsigned int),     // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,   // Type of memory allocation
-			PAGE_READWRITE);            // Memory protection for the region
+		memory = VirtualAlloc(0,                    // Starting address of the region to allocate
+			width * height * sizeof(unsigned int),  // Size of the region (in bytes)
+			MEM_RESERVE | MEM_COMMIT,               // Type of memory allocation
+			PAGE_READWRITE);                        // Memory protection for the region
 		
 		// Set info about the bitmap for the StretchDIBits
 		bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader); 
@@ -268,9 +264,9 @@ public:
 	}
 
 	// Clears screen with a chosen color
-	void clearScreen(_In_ u32 color) {
+	void clearScreen(_In_ UINT32 color) {
 		if (memory) {
-			u32* pixel = (u32*)memory;
+			UINT32* pixel = (UINT32*)memory;
 			for (int index = 0; index < bitmapWidth * bitmapHeight; ++index) {
 				*pixel++ = color;
 			}
@@ -278,17 +274,17 @@ public:
 	}
 
 	// Draws a pixel with custom color at specified coordinates
-	void drawPixel(_In_ int x, _In_ int y, _In_ u32 color) {
+	void drawPixel(_In_ int x, _In_ int y, _In_ UINT32 color) {
 		if (memory && x < bitmapWidth && y < bitmapHeight && x > 0 && y > 0) {
-			u32* pixel = (u32*)memory;
-			pixel += static_cast<u32>(y) * bitmapWidth + static_cast<u32>(x);
+			UINT32* pixel = (UINT32*)memory;
+			pixel += y * bitmapWidth + x;
 			*pixel = color;
 		}
 	}
 
 	// Draws a rectangle
-	void drawRectangle(_In_ vec2<int> coords, _In_ int recWidth, _In_ int recHeight, _In_ u32 color) {
-		u32* pixel = (u32*)memory;
+	void drawRectangle(_In_ vec2<int> coords, _In_ int recWidth, _In_ int recHeight, _In_ UINT32 color) {
+		UINT32* pixel = (UINT32*)memory;
 		pixel += coords.y * bitmapWidth + coords.x;
 		// For each row of the rectangle draw pixels
 		for (int y = 0; y < recHeight; ++y) {
@@ -299,7 +295,7 @@ public:
 	}
 
 	// Draws a filled circle
-	void drawCircle(_In_ vec2<int> origin, _In_ int radius, _In_  u32 color) {
+	void drawCircle(_In_ vec2<int> origin, _In_ int radius, _In_  UINT32 color) {
 		// Check for the trivial case of a 1 pixel radius circle
 		if (radius > 1) {
 			// Radius squared
@@ -317,7 +313,7 @@ public:
 	}
 
 	// Draws and empty circle
-	void drawEmptyCircle(_In_ vec2<int> origin, _In_ int radius, _In_  u32 color, _In_opt_ unsigned short thickness = 1) {
+	void drawEmptyCircle(_In_ vec2<int> origin, _In_ int radius, _In_  UINT32 color, _In_opt_ unsigned short thickness = 1) {
 		// Radius squared
 		int rSq = radius * radius;
 		// Traverse the y coordinates of the circle (from top (-) to bottom (+))
@@ -345,7 +341,7 @@ public:
 	}
 
 	// Draws a line
-	void drawLine(_In_ vec2<int> p1, _In_ vec2<int> p2, _In_ u32 color, _In_opt_ unsigned short thickness = 1) {
+	void drawLine(_In_ vec2<int> p1, _In_ vec2<int> p2, _In_ UINT32 color, _In_opt_ unsigned short thickness = 1) {
 		int x, y, e, pk;
 		int dx = p2.x - p1.x;
 		int dy = p2.y - p1.y;
@@ -413,7 +409,7 @@ public:
 	}
 
 	// Draws a triangle
-	void drawTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_ u32 color) {
+	void drawTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_ UINT32 color) {
 		// Bonus vertice, used as temp for vertices sorting and as a spliting vertice in the general case
 		vec2<int> v4;
 		// Set vertices so that Y of the first one <= Y of the second one <= Y of the third one
@@ -517,14 +513,15 @@ public:
 		width = screenWidth;
 		height = screenHeight;
 
+		// Save current bitmap memory
+		void* memorySave = memory; 
+
 		// Allocate memory for the entire screen to clear it
-		memory = VirtualAlloc(0,        // Starting address of the region to allocate
-			static_cast<u32>(width) * 
-			static_cast<u32>(height) * 
-			sizeof(unsigned int),       // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,   // Type of memory allocation
-			PAGE_READWRITE);            // Memory protection for the region
-		
+		memory = VirtualAlloc(0,                    // Starting address of the region to allocate
+			width * height * sizeof(unsigned int),  // Size of the region (in bytes)
+			MEM_RESERVE | MEM_COMMIT,               // Type of memory allocation
+			PAGE_READWRITE);                        // Memory protection for the region
+
 		// Clear the entire screen to remove the defects appearing on the margins
 		clearEntireScreen(0x000000);
 
@@ -535,13 +532,8 @@ public:
 			memory, &bitmapInfo,
 			DIB_RGB_COLORS, SRCCOPY);
 
-		// Allocate memory back for the bitmap only
-		memory = VirtualAlloc(0,             // Starting address of the region to allocate
-			static_cast<u32>(bitmapWidth) 
-			* static_cast<u32>(bitmapHeight) 
-			* sizeof(unsigned int),           // Size of the region (in bytes)
-			MEM_RESERVE | MEM_COMMIT,         // Type of memory allocation
-			PAGE_READWRITE);                  // Memory protection for the region
+		// Restore bitmap
+		memory = memorySave;
 
 		// Resize, move, and refresh the window
 		SetWindowPos(

@@ -1,5 +1,10 @@
+// Tic-tac-toe vs AI demo based on https://github.com/Szczurox/TicTacToe-Minimax
+// Interact with the board by clicking on the free spaces
+// Press "R" to restart
+// Press "F11" to toggle the fullscreen mode
+// Press "Esc" to exit the demo
+
 #include <windows.h>
-#include <stdint.h>
 #include "../GraphicsEngine.hpp"
 
 // Global variables
@@ -9,6 +14,7 @@ GraphicsEngine e;
 
 // Move value structure
 struct MoveValue {
+	// Move score
 	int score;
 	// Start and end points of the line marking the winning condition
 	vec2<int> lineBegin;
@@ -196,7 +202,7 @@ Move getPlayerMove(int board[3][3], Rect squares[3][3], bool& playerTurn) {
 }
 
 // Draws a cross
-void drawCross(vec2<int> origin, int width, u32 color, unsigned short thickness = 1) {
+void drawCross(vec2<int> origin, int width, UINT32 color, unsigned short thickness = 1) {
 	int halfWidth = width / 2;
 	e.drawLine(vec2<int>(origin.x - halfWidth, origin.y - halfWidth),
 		vec2<int>(origin.x + halfWidth, origin.y + halfWidth), color, thickness);
@@ -228,11 +234,10 @@ void drawBoard(int board[3][3]) {
 
 // Main window function
 int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR cmdLine, _In_ INT cmdCount) {
+	// Game variables
 	bool playerTurn = true;
 	bool gameOver = false;
 	MoveValue boardValue = 0;
-
-	e.createWindow(curInst, 900, 900);
 
 	// Board matrix (0 == empty, 1 == X, -1 == O)
 	int board[3][3] = {
@@ -241,9 +246,12 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 		{ 0, 0, 0 }
 	};
 
+	e.createWindow(curInst, 900, 900);
+
+	// Array of hitboxes of the board spaces
 	Rect squares[3][3];
 
-	// Generate hitbox for each square
+	// Generate hitbox for each space
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
 			squares[i][j] = Rect(vec2<int>(290 + j * 300, 10 + i * 300), vec2<int>(10 + j * 300, 290 + i * 300));
@@ -252,11 +260,27 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 	while (running) {
 		e.handleMessages();
 
+		if (restart) {
+			// Reset the board matrix
+			for (int i = 0; i < 3; i++)
+				for (int j = 0; j < 3; j++)
+					board[i][j] = 0;
+
+			// Revert game variables back to default
+			boardValue = 0;
+			playerTurn = true;
+			gameOver = false;
+			// Finish restart
+			restart = false;
+		}
+
+		// Main game loop
 		if (!gameOver) {
-			// Main game loop
 			drawBoard(board);
 
+			// Check if any of the players won or game ended in a draw
 			if (boardValue.score == 10 || boardValue.score == -10) {
+				// Draw a line that marks the winner
 				e.drawLine(boardValue.lineBegin, boardValue.lineEnd, RED, 10);
 				gameOver = true;
 			}
@@ -280,17 +304,6 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 			}
 		}
 
-		if (restart) {
-			int board[3][3] = {
-				{ 0, 0, 0 },
-				{ 0, 0, 0 },
-				{ 0, 0, 0 }
-			};
-			bool playerTurn = true;
-			bool gameOver = false;
-			MoveValue boardValue = 0;
-		}
-
 		e.mainLoopEndEvents();
 	}
 
@@ -304,10 +317,13 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		switch (wParam) {
 		case VK_ESCAPE:
 			DestroyWindow(hwnd);
+			break;
 		case VK_F11:
 			e.toggleFullscreen();
+			break;
 		case 0x52:
 			restart = true;
+			break;
 		}
 		break;
 	}
