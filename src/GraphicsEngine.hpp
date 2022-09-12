@@ -30,7 +30,6 @@ struct vec2 {
 };
 
 struct Rect {
-	//const wchar_t* id = nullptr;
 	vec2<int> minPoint;
 	vec2<int> maxPoint;
 
