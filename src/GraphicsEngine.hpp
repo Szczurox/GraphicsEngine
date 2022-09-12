@@ -190,8 +190,8 @@ public:
 		bitmapInfo.bmiHeader.biBitCount = 32;         // Number of bits used to represent each pixel  
 		bitmapInfo.bmiHeader.biCompression = BI_RGB;  // Compression of the bitmap
 		// When entering the fullscreen mode for the first time there appear defects on the margins
-		// We quickly enter and exit the fullscreen mode after creating the window
-		// So that defects don't appear if the user goes to the fullscreen mode himself
+		// Quickly enter and exit the fullscreen mode after creating the window
+		// So that defects don't appear if the user goes to the fullscreen mode
 		enterFullscreen();
 		exitFullscreen();
 
