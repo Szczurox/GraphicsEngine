@@ -208,7 +208,7 @@ public:
 	}
 
 	// Message processing
-	LRESULT processMessage(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam, bool& isRunning) {
+	LRESULT processMessage(_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wParam, _In_ LPARAM lParam, _In_ bool& isRunning) {
 		switch (msg) {
 		case WM_DESTROY:
 			PostQuitMessage(0);
