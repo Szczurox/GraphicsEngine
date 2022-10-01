@@ -407,6 +407,60 @@ public:
 		}
 	}
 
+
+	// Get point for Bezier curve
+	int getPt(int n1, int n2, float perc) {
+		int diff = n2 - n1;
+
+		return n1 + (int)(diff * perc);
+	}
+
+
+	// Draws a quadratic Bezier curve
+	void drawBezierCurve(_In_ vec2<int> p1, _In_ vec2<int> p2, _In_ vec2<int> p3, _In_ UINT32 color, _In_opt_ unsigned short thickness = 1) {
+		int xa, ya, xb, yb, x, y;
+		for (float i = 0; i < 1; i += 0.0001f) {
+			// The leading line
+			xa = getPt(p1.x, p2.x, i);
+			ya = getPt(p1.y, p2.y, i);
+			xb = getPt(p2.x, p3.x, i);
+			yb = getPt(p2.y, p3.y, i);
+
+			// Current point
+			x = getPt(xa, xb, i);
+			y = getPt(ya, yb, i);
+
+			drawCircle(vec2<int>(x, y), thickness, color);
+		}
+	}
+
+	// Draws a cubic Bezier curve
+	void drawBezierCurve(_In_ vec2<int> p1, _In_ vec2<int> p2, _In_ vec2<int> p3, _In_ vec2<int> p4, _In_ UINT32 color, _In_opt_ unsigned short thickness = 1) {
+		vec2<int> curPoint, pA, pB, pC, pM, pN;
+		for (float i = 0; i < 1; i += 0.0001f) {
+			// The leading line 1
+			pA.x = getPt(p1.x, p2.x, i);
+			pA.y = getPt(p1.y, p2.y, i);
+			pB.x = getPt(p2.x, p3.x, i);
+			pB.y = getPt(p2.y, p3.y, i);
+			pC.x = getPt(p3.x, p4.x, i);
+			pC.y = getPt(p3.y, p4.y, i);
+
+			// The leading line 2
+			pN.x = getPt(pA.x, pB.x, i);
+			pN.y = getPt(pA.y, pB.y, i);
+			pM.x = getPt(pB.x, pC.x, i);
+			pM.y = getPt(pB.y, pC.y, i);
+
+
+			// The current point
+			curPoint.x = getPt(pN.x, pM.x, i);
+			curPoint.y = getPt(pN.y, pM.y, i);
+
+			drawCircle(curPoint, thickness, color);
+		}
+	}
+
 	// Draws a triangle
 	void drawTriangle(_In_ vec2<int> v1, _In_ vec2<int> v2, _In_ vec2<int> v3, _In_ UINT32 color) {
 		// Bonus vertice, used as temp for vertices sorting and as a spliting vertice in the general case

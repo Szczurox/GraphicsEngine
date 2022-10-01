@@ -4,7 +4,9 @@
 // Press "F11" to toggle the fullscreen mode
 // Press "Esc" to exit the demo
 
-#include <windows.h>
+#ifndef TICTACTOE_DEMO
+#define TICTACTOE_DEMO
+
 #include "../GraphicsEngine.hpp"
 
 // Global variables
@@ -25,7 +27,7 @@ struct MoveValue {
 	// MoveValue constructor used in the final winning condition
 	MoveValue(int score, vec2<int> winSquareFirst, vec2<int> winSquareLast) : score(score) {
 		lineBegin = vec2<int>(150 + winSquareFirst.y * 300, 150 + winSquareFirst.x * 300);
-		lineEnd = vec2<int>(150 + winSquareLast.y * 300, 150 + winSquareLast.x* 300);
+		lineEnd = vec2<int>(150 + winSquareLast.y * 300, 150 + winSquareLast.x * 300);
 	}
 };
 
@@ -54,7 +56,7 @@ MoveValue evaluate(int b[3][3]) {
 	// One of the players won horizontally
 	for (short row = 0; row < 3; row++)
 		if (b[row][0] == b[row][1] && b[row][1] == b[row][2])
-			if (b[row][0] != 0) 
+			if (b[row][0] != 0)
 				return MoveValue(b[row][0] * 10, vec2<int>(row, 0), vec2<int>(row, 2));
 
 	// One of the players won vertically
@@ -124,19 +126,19 @@ int minimax(int board[3][3], int depth, bool isMax) {
 	// Maximizer's move
 	if (isMax)
 		return traverseCells(board, isMax, [board, depth, isMax](int best) {
-			// Chose the greater from the current best and the new move
-			int result = minimax(board, depth + 1, false);
-			if(best > result)
-				return best;
-			return result;
-		});
+		// Chose the greater from the current best and the new move
+		int result = minimax(board, depth + 1, false);
+		if (best > result)
+			return best;
+		return result;
+			});
 	// Minimizer's score
 	return traverseCells(board, isMax, [board, depth, isMax](int best) {
-			// Chose the smaller from the current best and the new move
-			int result = minimax(board, depth + 1, true);
-			if (best < result)
-				return best;
-			return result;
+		// Chose the smaller from the current best and the new move
+		int result = minimax(board, depth + 1, true);
+		if (best < result)
+			return best;
+		return result;
 		});
 }
 
@@ -232,8 +234,9 @@ void drawBoard(int board[3][3]) {
 	}
 }
 
+
 // Main window function
-int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR cmdLine, _In_ INT cmdCount) {
+int TicTacToeDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR cmdLine, _In_ INT cmdCount) {
 	// Game variables
 	bool playerTurn = true;
 	bool gameOver = false;
@@ -255,6 +258,10 @@ int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
 			squares[i][j] = Rect(vec2<int>(290 + j * 300, 10 + i * 300), vec2<int>(10 + j * 300, 290 + i * 300));
+
+	vec2<int> bezierPoint1 = { 200, 200 };
+	vec2<int> bezierPoint2 = { 250, 600 };
+	vec2<int> bezierPoint3 = { 600, 250 };
 
 	// Main program loop
 	while (running) {
@@ -329,3 +336,5 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 	return e.processMessage(hwnd, msg, wParam, lParam, running);
 }
+
+#endif
