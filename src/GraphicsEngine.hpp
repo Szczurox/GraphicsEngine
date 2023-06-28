@@ -39,7 +39,7 @@ struct Rect {
 		: maxPoint(vec2<int>(coords.x + width, coords.y)), minPoint(vec2<int>(coords.x, coords.y + height)) {}
 
 	bool isPointInside(vec2<int> point) {
-		return point.x > maxPoint.x && point.x < minPoint.x && point.y > minPoint.y && point.y < maxPoint.y;
+		return point.x < maxPoint.x && point.x > minPoint.x && point.y > minPoint.y && point.y < maxPoint.y;
 	}
 };
 
@@ -293,6 +293,14 @@ public:
 		}
 	}
 
+	// Draws a rectangle from Rect
+	void drawRectangle(_In_ Rect rect, _In_ UINT32 color) {
+		int recWidth = rect.maxPoint.x - rect.minPoint.x;
+		int recHeight = rect.maxPoint.y - rect.minPoint.y;
+		OutputDebugStringW(L"My output string.");
+		drawRectangle(rect.minPoint, recWidth, recHeight, color);
+	}
+
 	// Draws a filled circle
 	void drawCircle(_In_ vec2<int> origin, _In_ int radius, _In_  UINT32 color) {
 		// Check for the trivial case of a 1 pixel radius circle
@@ -407,14 +415,12 @@ public:
 		}
 	}
 
-
 	// Get point for Bezier curve
 	int getPt(int n1, int n2, float perc) {
 		int diff = n2 - n1;
 
 		return n1 + (int)(diff * perc);
 	}
-
 
 	// Draws a quadratic Bezier curve
 	void drawBezierCurve(_In_ vec2<int> p1, _In_ vec2<int> p2, _In_ vec2<int> p3, _In_ UINT32 color, _In_opt_ unsigned short thickness = 1) {

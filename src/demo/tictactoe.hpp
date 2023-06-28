@@ -257,11 +257,7 @@ int TicTacToeDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ 
 	// Generate hitbox for each space
 	for (int i = 0; i < 3; i++)
 		for (int j = 0; j < 3; j++)
-			squares[i][j] = Rect(vec2<int>(290 + j * 300, 10 + i * 300), vec2<int>(10 + j * 300, 290 + i * 300));
-
-	vec2<int> bezierPoint1 = { 200, 200 };
-	vec2<int> bezierPoint2 = { 250, 600 };
-	vec2<int> bezierPoint3 = { 600, 250 };
+			squares[i][j] = Rect(vec2<int>(10 + j * 300, 10 + i * 300), vec2<int>(290 + j * 300, 290 + i * 300));
 
 	// Main program loop
 	while (running) {
