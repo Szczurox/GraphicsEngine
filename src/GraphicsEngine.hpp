@@ -32,17 +32,18 @@ struct vec2 {
 struct Rect {
 	vec2<int> minPoint;
 	vec2<int> maxPoint;
+	int width;
+	int height;
 
-	Rect() : minPoint(vec2<int>()), maxPoint(vec2<int>()) {}
-	Rect(vec2<int> x, vec2<int> y) : minPoint(x), maxPoint(y) {}
-	Rect(vec2<int> coords, int width, int height) 
-		: maxPoint(vec2<int>(coords.x + width, coords.y)), minPoint(vec2<int>(coords.x, coords.y + height)) {}
+	Rect() : minPoint(vec2<int>()), maxPoint(vec2<int>()), width(0), height(0) {};
+	Rect(vec2<int> min, vec2<int> max) : minPoint(min), maxPoint(max), width(max.x - min.x), height(max.y - min.y) {};
+	Rect(vec2<int> coords, int width, int height)
+		: maxPoint(vec2<int>(coords.x + width, coords.y + height)), minPoint(coords), width(width), height(height) {};
 
 	bool isPointInside(vec2<int> point) {
 		return point.x < maxPoint.x && point.x > minPoint.x && point.y > minPoint.y && point.y < maxPoint.y;
 	}
 };
-
 
 class GraphicsEngine {
 private:
@@ -56,9 +57,6 @@ private:
 	BITMAPINFO bitmapInfo = BITMAPINFO{};
 	// Window styles
 	int winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE ;
-	// Bonus mouse variables
-	bool fsLbClick = false;
-	bool fsRbClick = false;
 	// Windowed / fullscreen ratios to transform coordinates in the fullscreen mode
 	float transformW = 1.0f;
 	float transformH = 1.0f;
@@ -134,6 +132,12 @@ public:
 	bool rbPress = false;  // Right button held
 	bool lbClick = false;  // Left button clicked
 	bool rbClick = false;  // Right button clicked
+	// Currently pressed keys
+	struct keyState {
+		bool isHeld;
+		bool isPressed;
+		bool isPressedHelp;
+	} keys[256];
 
 	// Creates a window
 	int createWindow(_In_ HINSTANCE currentInstance, _In_opt_ int windowWidth = 800, _In_opt_ int windowHeight = 600, 
@@ -180,6 +184,9 @@ public:
 			width * height * sizeof(unsigned int),  // Size of the region (in bytes)
 			MEM_RESERVE | MEM_COMMIT,               // Type of memory allocation
 			PAGE_READWRITE);                        // Memory protection for the region
+
+		// Allocate memory for the keys
+		memset(keys, 0, 256 * sizeof(keyState));
 		
 		// Set info about the bitmap for the StretchDIBits
 		bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader); 
@@ -209,7 +216,21 @@ public:
 
 	// Message processing
 	LRESULT processMessage(_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wParam, _In_ LPARAM lParam, _In_ bool& isRunning) {
+		wchar_t Msg[32];
 		switch (msg) {
+		case WM_KEYDOWN:
+			if (!keys[wParam].isHeld) {
+				keys[wParam].isHeld = true;
+				keys[wParam].isPressed = true;
+			}
+			else if (keys[wParam].isHeld)  {
+				keys[wParam].isPressed = false;
+			}
+			break;
+		case WM_KEYUP:
+			keys[wParam].isPressed = false;
+			keys[wParam].isHeld = false;
+			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
 			isRunning = false; 
@@ -220,25 +241,19 @@ public:
 			break;
 		case WM_LBUTTONDOWN:
 			lbPress = true;
-			fsLbClick = true;
 			break;
 		case WM_LBUTTONUP:
-			lbPress = false;
-			if (fsLbClick) {
+			if (lbPress)
 				lbClick = !lbClick;
-				fsLbClick = false;
-			}
+			lbPress = false;
 			break;
 		case WM_RBUTTONDOWN:
 			rbPress = true;
-			fsRbClick = true;
 			break;
 		case WM_RBUTTONUP:
-			rbPress = false;
-			if (fsRbClick) {
+			if (rbPress)
 				rbClick = !rbClick;
-				fsRbClick = false;
-			}	
+			rbPress = false;
 			break;
 		default:
 			return DefWindowProc(hwnd, msg, wParam, lParam);
@@ -260,6 +275,10 @@ public:
 		// End button click event
 		rbClick = false;
 		lbClick = false;
+	}
+
+	void destroy() {
+		DestroyWindow(hwnd);
 	}
 
 	// Clears screen with a chosen color
@@ -295,10 +314,7 @@ public:
 
 	// Draws a rectangle from Rect
 	void drawRectangle(_In_ Rect rect, _In_ UINT32 color) {
-		int recWidth = rect.maxPoint.x - rect.minPoint.x;
-		int recHeight = rect.maxPoint.y - rect.minPoint.y;
-		OutputDebugStringW(L"My output string.");
-		drawRectangle(rect.minPoint, recWidth, recHeight, color);
+		drawRectangle(rect.minPoint, rect.width, rect.height, color);
 	}
 
 	// Draws a filled circle

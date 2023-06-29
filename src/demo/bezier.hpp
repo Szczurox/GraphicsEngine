@@ -10,6 +10,7 @@ GraphicsEngine e;
 int BezierDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR cmdLine, _In_ INT cmdCount) {
 	e.createWindow(curInst, 900, 900);
 
+	// Create points for the bezier curves
 	vec2<int> bezier1Points[3] = {
 		{ 100, 100 },
 		{ 150, 300 },
@@ -23,6 +24,7 @@ int BezierDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 		{ 800, 150 }
 	};
 
+	// Value that modifies bezier curves every step
 	int x = 0;
 
 	// Main program loop
@@ -32,6 +34,7 @@ int BezierDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 		// Clear screen
 		e.clearScreen(0x333333);
 
+		// Update bezier curves
 		x++;
 
 		bezier1Points[0].x += (int)(2.0 * sin((double)(5 * (x - 2))) + 0.1);
