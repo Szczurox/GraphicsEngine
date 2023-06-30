@@ -330,7 +330,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		}
 		break;
 	}
-	return e.processMessage(hwnd, msg, wParam, lParam, running);
+	return e.processMessage(hwnd, msg, wParam, lParam);
 }
 
 #endif

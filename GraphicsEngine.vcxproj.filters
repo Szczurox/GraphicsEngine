@@ -32,7 +32,7 @@
     <ClInclude Include="src\TffParser.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\demo\maze.hpp">
+    <ClInclude Include="src\demo\pathfinding.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

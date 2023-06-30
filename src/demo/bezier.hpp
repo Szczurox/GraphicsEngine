@@ -37,12 +37,12 @@ int BezierDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 		// Update bezier curves
 		x++;
 
-		bezier1Points[0].x += (int)(2.0 * sin((double)(5 * (x - 2))) + 0.1);
-		bezier1Points[1].y += (int)(2.0 * sin((double)(5 * (x - 2))) + 0.2);
+		bezier1Points[0].x += (int)(2.0 * sin((double)(5.0 * (x - 2))) + 0.1);
+		bezier1Points[1].y += (int)(2.0 * sin((double)(5.0 * (x - 2))) + 0.2);
 
-		bezier2Points[1].x += (int)(2.0 * sin((double)(5 * (x - 2))) + 0.3);
-		bezier2Points[2].y -= (int)(2.0 * sin((double)(5 * (x - 2))) + 0.4);
-		bezier2Points[3].y += (int)(2.0 * sin((double)(5 * (x - 2))) + 0.5);
+		bezier2Points[1].x += (int)(2.0 * sin((double)(5.0 * (x - 2))) + 0.3);
+		bezier2Points[2].y -= (int)(2.0 * sin((double)(5.0 * (x - 2))) + 0.4);
+		bezier2Points[3].y += (int)(2.0 * sin((double)(5.0 * (x - 2))) + 0.5);
 
 		// Draw bezier curves
 		e.drawBezierCurve(bezier1Points[0], bezier1Points[1], bezier1Points[2], RED, 1);
@@ -66,10 +66,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		case VK_F11:
 			e.toggleFullscreen();
 			break;
-			break;
 		}
 	}
-	return e.processMessage(hwnd, msg, wParam, lParam, running);
+	return e.processMessage(hwnd, msg, wParam, lParam);
 }
 
 #endif

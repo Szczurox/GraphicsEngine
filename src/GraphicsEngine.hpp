@@ -135,8 +135,6 @@ public:
 	// Currently pressed keys
 	struct keyState {
 		bool isHeld;
-		bool isPressed;
-		bool isPressedHelp;
 	} keys[256];
 
 	// Creates a window
@@ -169,7 +167,7 @@ public:
 			winStyle,                                // Window style
 			CW_USEDEFAULT, CW_USEDEFAULT,            // Window initial position
 			windowedWidth + 15, windowedHeight + 38, // Window size (there is the bonus size because of the bitmap size and windowed size issues)
-			nullptr, nullptr, curInst, nullptr);     // Parent window, Menu, Instance handle, Additional app data
+			nullptr, nullptr, curInst, this);     // Parent window, Menu, Instance handle, Additional app data
 
 		if (!hwnd) {
 			MessageBox(0, L"CreateWindowEx failed", 0, 0);
@@ -215,25 +213,16 @@ public:
 	}
 
 	// Message processing
-	LRESULT processMessage(_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wParam, _In_ LPARAM lParam, _In_ bool& isRunning) {
-		wchar_t Msg[32];
+	LRESULT CALLBACK processMessage(_In_ HWND hwnd, _In_ UINT msg, _In_ WPARAM wParam, _In_ LPARAM lParam) {
 		switch (msg) {
 		case WM_KEYDOWN:
-			if (!keys[wParam].isHeld) {
-				keys[wParam].isHeld = true;
-				keys[wParam].isPressed = true;
-			}
-			else if (keys[wParam].isHeld)  {
-				keys[wParam].isPressed = false;
-			}
+			keys[wParam].isHeld = true;
 			break;
 		case WM_KEYUP:
-			keys[wParam].isPressed = false;
 			keys[wParam].isHeld = false;
 			break;
 		case WM_DESTROY:
 			PostQuitMessage(0);
-			isRunning = false; 
 			return 0;
 		case WM_MOUSEMOVE:
 			mouseX = (int)((float)(LOWORD(lParam) - marginHorizontal) * transformW);
