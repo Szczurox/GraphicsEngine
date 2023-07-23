@@ -173,9 +173,8 @@ int PathDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR 
 		e.handleMessages();
 
 		// Handle keyboard events
-		if (e.keys[VK_ESCAPE].isHeld) {
+		if (e.keys[VK_ESCAPE].isHeld)
 			e.destroy();
-		}
 
 		if (e.keys[VK_F11].isHeld && !fullscreenHeld) {
 			e.toggleFullscreen();

@@ -27,9 +27,24 @@ int BezierDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 	// Value that modifies bezier curves every step
 	int x = 0;
 
+	bool fullscreenHeld = false;
+
 	// Main program loop
 	while (running) {
 		e.handleMessages();
+
+		if (e.keys[VK_ESCAPE].isHeld)
+			e.destroy();
+
+		if (e.keys[0x52].isHeld)
+			restart = true;
+
+		if (e.keys[VK_F11].isHeld && !fullscreenHeld) {
+			e.toggleFullscreen();
+			fullscreenHeld = true;
+		}
+		else if (!e.keys[VK_F11].isHeld)
+			fullscreenHeld = false;
 
 		// Clear screen
 		e.clearScreen(0x333333);
@@ -57,17 +72,6 @@ int BezierDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 
 // Processes the messages
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	switch (msg) {
-	case WM_KEYDOWN:
-		switch (wParam) {
-		case VK_ESCAPE:
-			DestroyWindow(hwnd);
-			break;
-		case VK_F11:
-			e.toggleFullscreen();
-			break;
-		}
-	}
 	return e.processMessage(hwnd, msg, wParam, lParam);
 }
 

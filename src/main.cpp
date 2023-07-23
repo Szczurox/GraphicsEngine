@@ -1,5 +1,6 @@
-#include "demo/pathfinding.hpp"
+
+#include "demo/maze.hpp"
 
 int WINAPI WinMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR cmdLine, _In_ INT cmdCount) {
-	PathDemoMain(curInst, prevInst, cmdLine, cmdCount);
+	MazeDemoMain(curInst, prevInst, cmdLine, cmdCount);
 }

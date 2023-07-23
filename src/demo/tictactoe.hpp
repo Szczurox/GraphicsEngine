@@ -259,9 +259,24 @@ int TicTacToeDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ 
 		for (int j = 0; j < 3; j++)
 			squares[i][j] = Rect(vec2<int>(10 + j * 300, 10 + i * 300), vec2<int>(290 + j * 300, 290 + i * 300));
 
+	bool fullscreenHeld = false;
+
 	// Main program loop
 	while (running) {
 		e.handleMessages();
+
+		if (e.keys[VK_ESCAPE].isHeld)
+			e.destroy();
+
+		if (e.keys[0x52].isHeld)
+			restart = true;
+
+		if (e.keys[VK_F11].isHeld && !fullscreenHeld) {
+			e.toggleFullscreen();
+			fullscreenHeld = true;
+		}
+		else if (!e.keys[VK_F11].isHeld)
+			fullscreenHeld = false;
 
 		if (restart) {
 			// Reset the board matrix
@@ -315,21 +330,6 @@ int TicTacToeDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ 
 
 // Processes the messages
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	switch (msg) {
-	case WM_KEYDOWN:
-		switch (wParam) {
-		case VK_ESCAPE:
-			DestroyWindow(hwnd);
-			break;
-		case VK_F11:
-			e.toggleFullscreen();
-			break;
-		case 0x52:
-			restart = true;
-			break;
-		}
-		break;
-	}
 	return e.processMessage(hwnd, msg, wParam, lParam);
 }
 

@@ -145,6 +145,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\demo\bezier.hpp" />
+    <ClInclude Include="src\demo\maze.hpp" />
     <ClInclude Include="src\demo\pathfinding.hpp" />
     <ClInclude Include="src\demo\tictactoe.hpp" />
     <ClInclude Include="src\GraphicsEngine.hpp" />

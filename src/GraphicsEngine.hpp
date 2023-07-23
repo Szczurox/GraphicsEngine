@@ -19,6 +19,7 @@ enum COLOR {
 	ORANGE = 0xFFA500,
 	WHITE = 0xFFFFFF,
 	BLACK = 0x000000,
+	GREY = 0x808080,
 };
 
 template<class T>
@@ -624,6 +625,11 @@ public:
 			// Indicate that fullscreen is off
 			isFullscreen = false;
 		}
+	}
+
+	// Destructor
+	~GraphicsEngine() {
+		if(memory != nullptr) VirtualFree(memory, 0, MEM_RELEASE);
 	}
 };
 
