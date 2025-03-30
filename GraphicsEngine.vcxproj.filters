@@ -41,8 +41,5 @@
     <ClInclude Include="src\demo\graph.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\algorytmy\graph.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

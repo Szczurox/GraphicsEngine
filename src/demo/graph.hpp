@@ -57,8 +57,6 @@ void showGraph(int lengths[], std::pair<double, double> times[], int size, std::
 
 	for (int i = 0; i < size; i++) {
 		std::pair<double, double> curPair = times[i];
-		if (curPair.first > maxFound)
-			maxFound = curPair.first;
 		if (curPair.second > maxFound)
 			maxFound = curPair.second;
 	}
@@ -105,8 +103,6 @@ void showGraph2(int lengths[], std::pair<double, double> times[], int size, std:
 		std::pair<double, double> curPair = times[i];
 		if (curPair.first > maxFound)
 			maxFound = curPair.first;
-		if (curPair.second > maxFound)
-			maxFound = curPair.second;
 	}
 
 	int maxFoundTop = ceil(maxFound);
@@ -141,7 +137,7 @@ void showGraph2(int lengths[], std::pair<double, double> times[], int size, std:
 
 	for (int i = 0; i < size; i++) {
 		double percentX = (double)lengths[i] / (double)lengths[size - 1];
-		double percentY = times[i].second / maxFoundTop;
+		double percentY = times[i].first / maxFoundTop;
 		int pointX = gWMin + 50 + (double)((gWMax - gWMin - 20) / 21.0) * 20 * percentX;
 		int pointY = gHMax - 20 - (int)((double)((gHMax - gHMin) / 11) * 10 * (double)percentY);
 		e.drawCircle(vec2<int>(pointX, pointY), 5, RED);

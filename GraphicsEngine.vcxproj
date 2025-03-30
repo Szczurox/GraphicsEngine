@@ -144,7 +144,6 @@
     <ClCompile Include="src\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\algorytmy\graph.hpp" />
     <ClInclude Include="src\demo\bezier.hpp" />
     <ClInclude Include="src\demo\graph.hpp" />
     <ClInclude Include="src\demo\maze.hpp" />
