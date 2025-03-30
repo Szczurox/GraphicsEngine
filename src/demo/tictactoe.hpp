@@ -132,6 +132,7 @@ int minimax(int board[3][3], int depth, bool isMax) {
 			return best;
 		return result;
 			});
+
 	// Minimizer's score
 	return traverseCells(board, isMax, [board, depth, isMax](int best) {
 		// Chose the smaller from the current best and the new move
@@ -141,7 +142,6 @@ int minimax(int board[3][3], int depth, bool isMax) {
 		return result;
 		});
 }
-
 
 // Returns the best possible move
 Move findBestMove(int board[3][3], bool& isMax) {

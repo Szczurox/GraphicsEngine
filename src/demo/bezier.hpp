@@ -36,9 +36,6 @@ int BezierDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PST
 		if (e.keys[VK_ESCAPE].isHeld)
 			e.destroy();
 
-		if (e.keys[0x52].isHeld)
-			restart = true;
-
 		if (e.keys[VK_F11].isHeld && !fullscreenHeld) {
 			e.toggleFullscreen();
 			fullscreenHeld = true;

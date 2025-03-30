@@ -156,7 +156,7 @@ public:
 		wc.lpfnWndProc = WindowProc;
 		wc.hInstance = currentInstance;
 		wc.lpszClassName = className;
-		wc.hCursor = LoadCursor(0, IDC_CROSS);
+		wc.hCursor = LoadCursor(0, IDC_ARROW);
 
 		if (!RegisterClass(&wc)) {
 			MessageBox(0, L"RegisterClass failed", 0, 0);
@@ -168,7 +168,7 @@ public:
 			winStyle,                                // Window style
 			CW_USEDEFAULT, CW_USEDEFAULT,            // Window initial position
 			windowedWidth + 15, windowedHeight + 38, // Window size (there is the bonus size because of the bitmap size and windowed size issues)
-			nullptr, nullptr, curInst, this);     // Parent window, Menu, Instance handle, Additional app data
+			nullptr, nullptr, curInst, this);        // Parent window, Menu, Instance handle, Additional app data
 
 		if (!hwnd) {
 			MessageBox(0, L"CreateWindowEx failed", 0, 0);
@@ -272,7 +272,7 @@ public:
 	}
 
 	// Clears screen with a chosen color
-	void clearScreen(_In_ UINT32 color) {
+	void clearScreen(_In_ UINT32 color = BLACK) {
 		if (memory) {
 			UINT32* pixel = (UINT32*)memory;
 			for (int index = 0; index < bitmapWidth * bitmapHeight; ++index) {
@@ -289,6 +289,70 @@ public:
 			*pixel = color;
 		}
 	}
+
+	// Draws text on the screen
+	void drawText(_In_ int x, _In_ int y, _In_ const wchar_t* text, _In_ int size = 16, _In_ UINT32 color = WHITE) {
+		if (!memory || !text) return;
+
+		// Create a memory DC compatible with the window DC
+		HDC memDC = CreateCompatibleDC(hdc);
+		if (!memDC) return;
+
+		// Create a BITMAPINFO structure
+		BITMAPINFO bmpInfo = {};
+		bmpInfo.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmpInfo.bmiHeader.biWidth = bitmapWidth;
+		bmpInfo.bmiHeader.biHeight = -bitmapHeight;  // Negative for top-down DIB
+		bmpInfo.bmiHeader.biPlanes = 1;
+		bmpInfo.bmiHeader.biBitCount = 32;
+		bmpInfo.bmiHeader.biCompression = BI_RGB;
+
+		// Create a DIB section linked to the memory
+		void* dibMemory = nullptr;
+		HBITMAP hBitmap = CreateDIBSection(memDC, &bmpInfo, DIB_RGB_COLORS, &dibMemory, NULL, 0);
+		if (!hBitmap) {
+			DeleteDC(memDC);
+			return;
+		}
+
+		// Copy existing pixel data from `memory` to `dibMemory`
+		memcpy(dibMemory, memory, bitmapWidth * bitmapHeight * sizeof(UINT32));
+
+		// Select the bitmap into the memory DC
+		HBITMAP oldBitmap = (HBITMAP)SelectObject(memDC, hBitmap);
+
+		// Set text color
+		COLORREF textColor = RGB(
+			(color >> 16) & 0xFF,  // Red
+			(color >> 8) & 0xFF,   // Green
+			color & 0xFF           // Blue
+		);
+
+		SetTextColor(memDC, textColor);
+		SetBkMode(memDC, TRANSPARENT);
+
+		// Create a font (optional, if you want custom font)
+		HFONT hFont = CreateFont(size, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, ANSI_CHARSET,
+			OUT_TT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY,
+			DEFAULT_PITCH | FF_DONTCARE, L"Arial");
+
+		if (hFont) {
+			SelectObject(memDC, hFont);
+		}
+
+		// Draw text onto the memory bitmap
+		TextOutW(memDC, x, y, text, lstrlenW(text));
+
+		// Copy the modified bitmap back to `memory`
+		memcpy(memory, dibMemory, bitmapWidth * bitmapHeight * sizeof(UINT32));
+
+		// Cleanup
+		SelectObject(memDC, oldBitmap);
+		DeleteObject(hBitmap);
+		if (hFont) DeleteObject(hFont);
+		DeleteDC(memDC);
+	}
+
 
 	// Draws a rectangle
 	void drawRectangle(_In_ vec2<int> coords, _In_ int recWidth, _In_ int recHeight, _In_ UINT32 color) {
