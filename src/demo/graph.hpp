@@ -15,6 +15,7 @@
 std::pair<double, double> sortTester(void (*f)(std::vector<int>&), int size, int runs = 1);
 void bubbleSort(std::vector<int>& v);
 void bubbleSortNoCheck(std::vector<int>& v);
+void bubbleSortNoReduction(std::vector<int>& v);
 void insertionSort(std::vector<int>& v);
 void selectionSort(std::vector<int>& v);
 void basicSort(std::vector<int>& v);
@@ -157,7 +158,7 @@ int GraphDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR
 	int tempScreenState = 0;
 
 	// Test nums
-	int runs = 20;
+	int runs = 100;
 
 	// Lengths of the test arrays
 	int lengths[7] = { 10, 20, 50, 100, 200, 500, 1000 };
@@ -166,9 +167,9 @@ int GraphDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR
 	std::pair<double, double> times[7] = {};
 
 	// List of sorting algorithms
-	void (*funcs[6])(std::vector<int>&) = {bubbleSort, insertionSort, selectionSort, basicSort, bubbleSortNoCheck, mergeSort};
+	void (*funcs[7])(std::vector<int>&) = {bubbleSort, insertionSort, selectionSort, basicSort, bubbleSortNoCheck, bubbleSortNoReduction, mergeSort};
 
-	std::wstring labels[6] = { L"Bubble Sort", L"Insertion Sort", L"Selection Sort", L"sort()", L"Bubble Sort 2", L"Merge Sort"};
+	std::wstring labels[7] = { L"B¹belkowe", L"Wstawianie", L"Wybór", L"sort()", L"B¹belkowe 2", L"B¹belkowe 3", L"Scalanie"};
 
 	// Main program loop
 	while (running) {
@@ -185,7 +186,7 @@ int GraphDemoMain(_In_ HINSTANCE curInst, _In_opt_ HINSTANCE prevInst, _In_ PSTR
 			if (e.keys[VK_ESCAPE].isHeld)
 				e.destroy();
 			if (!e.keys['R'].isHeld)
-				screen = setButtons(labels, 6);
+				screen = setButtons(labels, 7);
 			else
 				screen = tempScreenState;
 			if (screen != 0) {
@@ -307,37 +308,49 @@ void bubbleSortNoCheck(std::vector<int>& v) {
 			}
 }
 
-void insertionSort(std::vector<int>& arr) {
-	for (int i = 1; i < arr.size(); i++) {
-		int key = arr[i];
-		int j = i - 1;
+void bubbleSortNoReduction(std::vector<int>& v) {
+	int n = v.size();
 
-		// Moving element slarger than the key 1 to the right
-		while (j >= 0 && arr[j] > key) {
-			arr[j + 1] = arr[j];
-			--j;
+	for (int i = 0; i < n - 1; i++) {
+		for (int j = 0; j < n - 1; j++) {  // Brak ograniczenia zakresu sortowania
+			if (v[j] > v[j + 1]) {
+				std::swap(v[j], v[j + 1]);
+			}
 		}
-
-		arr[j + 1] = key;
 	}
 }
 
-void selectionSort(std::vector<int>& arr) {
-	int n = arr.size();
+void insertionSort(std::vector<int>& v) {
+	for (int i = 1; i < v.size(); i++) {
+		int key = v[i];
+		int j = i - 1;
+
+		// Moving element slarger than the key 1 to the right
+		while (j >= 0 && v[j] > key) {
+			v[j + 1] = v[j];
+			--j;
+		}
+
+		v[j + 1] = key;
+	}
+}
+
+void selectionSort(std::vector<int>& v) {
+	int n = v.size();
 
 	for (int i = 0; i < n - 1; i++) {
 		int minIndex = i;
 
 		// Find lowest variable in the unsorted part
 		for (int j = i + 1; j < n; j++)
-			if (arr[j] < arr[minIndex])
+			if (v[j] < v[minIndex])
 				minIndex = j;
 
 		// Switch smallest found with the first unsorted
 		if (minIndex != i) {
-			int temp = arr[minIndex];
-			arr[minIndex] = arr[i];
-			arr[i] = temp;
+			int temp = v[minIndex];
+			v[minIndex] = v[i];
+			v[i] = temp;
 		}
 	}
 }
@@ -346,35 +359,35 @@ void basicSort(std::vector<int>& v) {
 	std::sort(v.begin(), v.end());
 }
 
-void merge(std::vector<int>& arr, int left, int mid, int right) {
+void merge(std::vector<int>& v, int left, int mid, int right) {
 	std::vector<int> temp;
 	int i = left, j = mid + 1;
 
 	while (i <= mid && j <= right) {
-		if (arr[i] < arr[j])
-			temp.push_back(arr[i++]);
+		if (v[i] < v[j])
+			temp.push_back(v[i++]);
 		else
-			temp.push_back(arr[j++]);
+			temp.push_back(v[j++]);
 	}
 
-	while (i <= mid) temp.push_back(arr[i++]);
-	while (j <= right) temp.push_back(arr[j++]);
+	while (i <= mid) temp.push_back(v[i++]);
+	while (j <= right) temp.push_back(v[j++]);
 
 	for (int k = 0; k < temp.size(); k++)
-		arr[left + k] = temp[k];
+		v[left + k] = temp[k];
 }
 
-void mergeSortRecursion(std::vector<int>& arr, int left, int right) {
+void mergeSortRecursion(std::vector<int>& v, int left, int right) {
 	if (left >= right) return;
 
 	int mid = left + (right - left) / 2;
-	mergeSortRecursion(arr, left, mid);
-	mergeSortRecursion(arr, mid + 1, right);
-	merge(arr, left, mid, right);
+	mergeSortRecursion(v, left, mid);
+	mergeSortRecursion(v, mid + 1, right);
+	merge(v, left, mid, right);
 }
 
-void mergeSort(std::vector<int>& arr) {
-	mergeSortRecursion(arr, 0, arr.size() - 1);
+void mergeSort(std::vector<int>& v) {
+	mergeSortRecursion(v, 0, v.size() - 1);
 }
 
 

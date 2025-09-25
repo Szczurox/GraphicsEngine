@@ -42,7 +42,7 @@ struct Rect {
 		: maxPoint(vec2<int>(coords.x + width, coords.y + height)), minPoint(coords), width(width), height(height) {};
 
 	bool isPointInside(vec2<int> point) {
-		return point.x < maxPoint.x && point.x > minPoint.x && point.y > minPoint.y && point.y < maxPoint.y;
+		return point.x < maxPoint.x&& point.x > minPoint.x && point.y > minPoint.y && point.y < maxPoint.y;
 	}
 };
 
@@ -57,7 +57,7 @@ private:
 	// Info about the DIB for the StretchDIBits
 	BITMAPINFO bitmapInfo = BITMAPINFO{};
 	// Window styles
-	int winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE ;
+	int winStyle = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX | WS_VISIBLE;
 	// Windowed / fullscreen ratios to transform coordinates in the fullscreen mode
 	float transformW = 1.0f;
 	float transformH = 1.0f;
@@ -139,7 +139,7 @@ public:
 	} keys[256];
 
 	// Creates a window
-	int createWindow(_In_ HINSTANCE currentInstance, _In_opt_ int windowWidth = 800, _In_opt_ int windowHeight = 600, 
+	int createWindow(_In_ HINSTANCE currentInstance, _In_opt_ int windowWidth = 800, _In_opt_ int windowHeight = 600,
 		_In_opt_ const wchar_t* windowTitle = L"GraphicsEngine") {
 		// Set the class variables
 		windowedWidth = windowWidth;
@@ -186,9 +186,9 @@ public:
 
 		// Allocate memory for the keys
 		memset(keys, 0, 256 * sizeof(keyState));
-		
+
 		// Set info about the bitmap for the StretchDIBits
-		bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader); 
+		bitmapInfo.bmiHeader.biSize = sizeof(bitmapInfo.bmiHeader);
 		bitmapInfo.bmiHeader.biWidth = bitmapWidth;
 		// Height is reversed so that the top left corner is the coordinate system origin
 		bitmapInfo.bmiHeader.biHeight = -bitmapHeight;
@@ -396,7 +396,7 @@ public:
 		// Traverse the y coordinates of the circle (from top (-) to bottom (+))
 		for (int y = -radius; y <= radius; y++) {
 			// Traverse the circle's x coordinates (from left (-) to right (+))
-			for (int x = -radius; x <= radius; x++) 
+			for (int x = -radius; x <= radius; x++)
 				// If the pixel is within the circle
 				if (CEQ(x, y, rSq)) {
 					// Draw pixels of the circle until there is other pixel above or below
@@ -424,19 +424,19 @@ public:
 		int dy = p2.y - p1.y;
 		int dxAbs = abs(dx);
 		int dyAbs = abs(dy);
-		
+
 		// If the slope is greater than or equal to 1
 		if (dxAbs >= dyAbs) {
 			pk = 2 * dyAbs - dxAbs;
 
 			if (dx >= 0) {
-				x = p1.x; 
-				y = p1.y; 
+				x = p1.x;
+				y = p1.y;
 				e = p2.x;
 			}
 			else {
-				x = p2.x; 
-				y = p2.y; 
+				x = p2.x;
+				y = p2.y;
 				e = p1.x;
 			}
 
@@ -447,9 +447,9 @@ public:
 				if (pk < 0)
 					pk += 2 * dyAbs;
 				else {
-					if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) y++; 
+					if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) y++;
 					else y--;
-					pk += + 2 * (dyAbs - dxAbs);
+					pk += +2 * (dyAbs - dxAbs);
 				}
 				drawCircle(vec2<int>(x, y), thickness, color);
 			}
@@ -459,13 +459,13 @@ public:
 			pk = 2 * dxAbs - dyAbs;
 
 			if (dy >= 0) {
-				x = p1.x; 
-				y = p1.y; 
+				x = p1.x;
+				y = p1.y;
 				e = p2.y;
 			}
 			else {
-				x = p2.x; 
-				y = p2.y; 
+				x = p2.x;
+				y = p2.y;
 				e = p1.y;
 			}
 
@@ -476,9 +476,9 @@ public:
 				if (pk <= 0)
 					pk += 2 * dxAbs;
 				else {
-					if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) x++; 
+					if ((dx < 0 && dy < 0) || (dx > 0 && dy > 0)) x++;
 					else x--;
-					pk += + 2 * (dxAbs - dyAbs);
+					pk += +2 * (dxAbs - dyAbs);
 				}
 				drawCircle(vec2<int>(x, y), thickness, color);
 			}
@@ -578,7 +578,7 @@ public:
 	void exitFullscreen() {
 		SetWindowLongPtr(hwnd, GWL_STYLE, winStyle); // Set the window styles
 		SetWindowLongPtr(hwnd, GWL_EXSTYLE, WS_EX_LEFT); // Set the extended window styles
-		
+
 		// Set the window size to the windowed size
 		width = windowedWidth;
 		height = windowedHeight;
@@ -643,7 +643,7 @@ public:
 		height = screenHeight;
 
 		// Save current bitmap memory
-		void* memorySave = memory; 
+		void* memorySave = memory;
 
 		// Allocate memory for the entire screen to clear it
 		memory = VirtualAlloc(0,                    // Starting address of the region to allocate
@@ -693,7 +693,7 @@ public:
 
 	// Destructor
 	~GraphicsEngine() {
-		if(memory != nullptr) VirtualFree(memory, 0, MEM_RELEASE);
+		if (memory != nullptr) VirtualFree(memory, 0, MEM_RELEASE);
 	}
 };
 
